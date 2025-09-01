@@ -63,6 +63,7 @@ export function TotpMfaDialog({ open, onOpenChange }: TotpMfaDialogProps) {
         setIsLoading(true);
         setSetupError(null);
         try {
+          // Use the server action to generate the secret
           const session = await multiFactor(user).getSession();
           const secret = await TotpMultiFactorGenerator.generateSecret(session);
           setSecret(secret);
