@@ -64,15 +64,27 @@ export function TotpMfaDialog({ open, onOpenChange }: TotpMfaDialogProps) {
         setSetupError(null);
         try {
           // Use the server action to generate the secret
-          const session = await multiFactor(user).getSession();
-          const secret = await TotpMultiFactorGenerator.generateSecret(session);
-          setSecret(secret);
+          const result = await generateTotpSecret();
+          if (!result.success || !result.secret) {
+            // This is likely the auth/operation-not-allowed error from the server
+             if (result.error?.includes('auth/operation-not-allowed')) {
+                setSetupError("TOTP based MFA is not enabled for your Firebase project. Please enable it in the Firebase Console under Authentication > Settings > Multi-factor authentication and ensure your project is on the Blaze (Pay-as-you-go) plan.");
+             } else {
+                setSetupError(result.error || "An unexpected error occurred while generating the MFA secret on the server.");
+             }
+             setIsLoading(false);
+             return;
+          }
 
-          const qrCodeUri = secret.generateQrCodeUri(user.email!, "Fortress Auth");
+          // The TotpSecret object needs to be created on the client from the server's session
+          const clientSecret = TotpMultiFactorGenerator.createSecret(result.secret);
+          setSecret(clientSecret);
+
+          const qrCodeUri = clientSecret.generateQrCodeUri(user.email!, "Fortress Auth");
           const dataUrl = await QRCode.toDataURL(qrCodeUri);
           setQrCodeUrl(dataUrl);
         } catch (error: any) {
-          if (error.code === 'auth/operation-not-allowed') {
+          if (error.code === 'auth/operation-not-allowed' || error.message.includes('auth/operation-not-allowed')) {
             setSetupError("TOTP based MFA is not enabled for your Firebase project. Please enable it in the Firebase Console under Authentication > Settings > Multi-factor authentication and ensure your project is on the Blaze (Pay-as-you-go) plan.");
           } else {
             setSetupError("An unexpected error occurred. Please try again.");
@@ -145,11 +157,11 @@ export function TotpMfaDialog({ open, onOpenChange }: TotpMfaDialogProps) {
         ) : (
           <>
             <div className="flex justify-center py-4">
-                {isLoading || !qrCodeUrl ? (
+                {(isLoading || !qrCodeUrl) && !setupError ? (
                     <Skeleton className="h-48 w-48" />
-                ) : (
+                ) : qrCodeUrl ? (
                     <img src={qrCodeUrl} alt="QR Code" />
-                )}
+                ) : null}
             </div>
             
             <div className="text-center text-sm">
@@ -178,7 +190,7 @@ export function TotpMfaDialog({ open, onOpenChange }: TotpMfaDialogProps) {
                   )}
                 />
                 <DialogFooter>
-                  <Button type="submit" disabled={isLoading}>
+                  <Button type="submit" disabled={isLoading || !secret}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Verify & Enable
                   </Button>
