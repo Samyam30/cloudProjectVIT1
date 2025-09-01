@@ -1,0 +1,44 @@
+diff --git a/node_modules/firebase-admin/lib/index.js b/node_modules/firebase-admin/lib/index.js
+index 5158652..3915157 100644
+--- a/node_modules/firebase-admin/lib/index.js
++++ b/node_modules/firebase-admin/lib/index.js
+@@ -107,4 +107,4 @@
+ exports.SDK_VERSION = version_1.SDK_VERSION;
+ exports.apps = firebase_namespace_1.apps;
+ exports.registerINTERNAL = firebase_namespace_1.registerINTERNAL;
+-//# sourceMappingURL=index.js.map
+\ No newline at end of file
++//# sourceMappingURL=index.js.map
+diff --git a/node_modules/firebase-admin/lib/index.mjs b/node_modules/firebase-admin/lib/index.mjs
+index 72477a3..c821376 100644
+--- a/node_modules/firebase-admin/lib/index.mjs
++++ b/node_modules/firebase-admin/lib/index.mjs
+@@ -20,4 +20,4 @@
+ export const SDK_VERSION = version.SDK_VERSION;
+ export const apps = firebaseNamespace.apps;
+ export const registerINTERNAL = firebaseNamespace.registerINTERNAL;
+-//# sourceMappingURL=index.mjs.map
+\ No newline at end of file
++//# sourceMappingURL=index.mjs.map
+diff --git a/node_modules/firebase-admin/lib/app/firebase-namespace.js b/node_modules/firebase-admin/lib/app/firebase-namespace.js
+index 1059c04..b17e2ac 100644
+--- a/node_modules/firebase-admin/lib/app/firebase-namespace.js
++++ b/node_modules/firebase-admin/lib/app/firebase-namespace.js
+@@ -69,4 +69,4 @@
+ }
+ exports.FirebaseNamespace = FirebaseNamespace;
+ exports.defaultFirebaseNamespace = new FirebaseNamespace();
+-//# sourceMappingURL=firebase-namespace.js.map
+\ No newline at end of file
++//# sourceMappingURL=firebase-namespace.js.map
+diff --git a/node_modules/firebase-admin/lib/app/firebase-namespace.mjs b/node_modules/firebase-admin/lib/app/firebase-namespace.mjs
+index 4752c1e..dfc44ba 100644
+--- a/node_modules/firebase-admin/lib/app/firebase-namespace.mjs
++++ b/node_modules/firebase-admin/lib/app/firebase-namespace.mjs
+@@ -49,4 +49,4 @@
+     }
+ }
+ export const defaultFirebaseNamespace = new FirebaseNamespace();
+-//# sourceMappingURL=firebase-namespace.mjs.map
+\ No newline at end of file
++//# sourceMappingURL=firebase-namespace.mjs.map
