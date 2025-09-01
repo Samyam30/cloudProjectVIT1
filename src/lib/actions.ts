@@ -1,19 +1,18 @@
 "use server";
-import "dotenv/config";
 
 import { headers } from "next/headers";
 import { intelligentlyStepUpMFA } from "@/ai/flows/intelligent-mfa-step-up";
 import type { UserContext } from "@/ai/flows/intelligent-mfa-step-up";
-import { authAdmin } from "./firebase-admin";
+import { adminAuth } from "./firebase-admin";
 import { revalidatePath } from "next/cache";
 
 
 export async function enrollPhoneMfa(uid: string, phoneNumber: string) {
   try {
-    const user = await authAdmin.getUser(uid);
+    const user = await adminAuth.getUser(uid);
     const existingFactors = user.multiFactor?.enrolledFactors || [];
     
-    await authAdmin.updateUser(uid, {
+    await adminAuth.updateUser(uid, {
       multiFactor: {
         enrolledFactors: [
           ...existingFactors,
