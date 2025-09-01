@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -66,12 +67,17 @@ export function LoginForm() {
       await signInWithPopup(auth, provider);
       router.push("/dashboard");
     } catch (error: any) {
-       toast({
-        variant: "destructive",
-        title: "Google Sign-In Failed",
-        description: "Could not sign in with Google. Please try again.",
-      });
-      console.error(error);
+       if (error.code === 'auth/popup-closed-by-user') {
+        // User closed the popup, do nothing
+        console.log("Google Sign-In cancelled by user.");
+       } else {
+        toast({
+          variant: "destructive",
+          title: "Google Sign-In Failed",
+          description: "Could not sign in with Google. Please try again.",
+        });
+        console.error(error);
+       }
     } finally {
       setIsGoogleLoading(false);
     }
@@ -87,7 +93,6 @@ export function LoginForm() {
 
       if (!user.emailVerified) {
         setNeedsVerification(true);
-        await auth.signOut();
         setIsLoading(false);
         return;
       }
