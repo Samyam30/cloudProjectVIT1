@@ -1,4 +1,5 @@
 "use server";
+import "dotenv/config";
 
 import { headers } from "next/headers";
 import { intelligentlyStepUpMFA } from "@/ai/flows/intelligent-mfa-step-up";
@@ -9,10 +10,13 @@ import { revalidatePath } from "next/cache";
 
 export async function enrollPhoneMfa(uid: string, phoneNumber: string) {
   try {
+    const user = await authAdmin.getUser(uid);
+    const existingFactors = user.multiFactor?.enrolledFactors || [];
+    
     await authAdmin.updateUser(uid, {
       multiFactor: {
         enrolledFactors: [
-          ...((await authAdmin.getUser(uid)).multiFactor?.enrolledFactors || []),
+          ...existingFactors,
           {
             factorId: "phone",
             phoneNumber,
