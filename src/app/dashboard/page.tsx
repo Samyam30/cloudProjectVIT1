@@ -8,15 +8,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { KeyRound, Mail, Smartphone, UserCog } from "lucide-react";
 import { PhoneMfaDialog } from "@/components/auth/PhoneMfaDialog";
+import { TotpMfaDialog } from "@/components/auth/TotpMfaDialog";
+import type { MultiFactorInfo } from "firebase/auth";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [isPhoneMfaDialogOpen, setIsPhoneMfaDialogOpen] = useState(false);
+  const [isTotpMfaDialogOpen, setIsTotpMfaDialogOpen] = useState(false);
+  const [enrolledFactors, setEnrolledFactors] = useState<MultiFactorInfo[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
+    } else if (user) {
+      setEnrolledFactors(user.multiFactor.enrolledFactors);
     }
   }, [user, loading, router]);
 
@@ -28,7 +34,18 @@ export default function DashboardPage() {
     );
   }
 
-  const isPhoneMfaEnabled = user.providerData.some(p => p.providerId === 'phone');
+  const isPhoneMfaEnabled = enrolledFactors.some(f => f.factorId === 'phone');
+  const isTotpMfaEnabled = enrolledFactors.some(f => f.factorId === 'totp');
+  
+  const handleTotpDialogChange = (open: boolean) => {
+    // Refresh user to get latest MFA info when dialog closes
+    if (!open) {
+      user.reload().then(() => {
+        setEnrolledFactors(user.multiFactor.enrolledFactors);
+      });
+    }
+    setIsTotpMfaDialogOpen(open);
+  }
 
   return (
     <>
@@ -86,9 +103,8 @@ export default function DashboardPage() {
                       icon={<Mail className="h-5 w-5"/>}
                       title="Authenticator App"
                       description="Use a TOTP app like Google Authenticator."
-                      enabled={false}
-                      onToggle={() => {}}
-                      disabled
+                      enabled={isTotpMfaEnabled}
+                      onToggle={() => setIsTotpMfaDialogOpen(true)}
                     />
                   </div>
                 </CardContent>
@@ -98,6 +114,7 @@ export default function DashboardPage() {
         </main>
       </div>
       <PhoneMfaDialog open={isPhoneMfaDialogOpen} onOpenChange={setIsPhoneMfaDialogOpen} />
+      <TotpMfaDialog open={isTotpMfaDialogOpen} onOpenChange={handleTotpDialogChange} />
     </>
   );
 }

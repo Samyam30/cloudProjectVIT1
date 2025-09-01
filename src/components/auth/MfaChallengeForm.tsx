@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,14 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { getAuth, PhoneAuthProvider, PhoneMultiFactorGenerator, multiFactor, RecaptchaVerifier } from "firebase/auth";
+import { 
+  getAuth, 
+  PhoneAuthProvider, 
+  PhoneMultiFactorGenerator, 
+  RecaptchaVerifier,
+  TotpMultiFactorGenerator,
+  TotpFactorInfo
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 const formSchema = z.object({
@@ -36,6 +43,7 @@ export function MfaChallengeForm() {
   const [hintState, setHintState] = useState<any>(null);
   const [recaptchaResolved, setRecaptchaResolved] = useState(false);
 
+  const mfaType = useMemo(() => hintState?.factorId, [hintState]);
 
   useEffect(() => {
     const resolverStr = searchParams.get("resolver");
@@ -43,6 +51,10 @@ export function MfaChallengeForm() {
     if (resolverStr && hintStr) {
         try {
             const resolver = JSON.parse(decodeURIComponent(resolverStr));
+            // Re-instantiate the resolver object with its methods
+            const newResolver = getAuth().currentUser?.multiFactor.resolver;
+            Object.assign(newResolver, resolver);
+            
             const hint = JSON.parse(decodeURIComponent(hintStr));
             setResolverState(resolver);
             setHintState(hint);
@@ -55,7 +67,7 @@ export function MfaChallengeForm() {
   }, [searchParams, router, toast]);
 
   useEffect(() => {
-    if (resolverState && !recaptchaResolved) {
+    if (resolverState && mfaType === 'phone' && !recaptchaResolved) {
       const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         'size': 'invisible',
         'callback': () => {
@@ -78,7 +90,7 @@ export function MfaChallengeForm() {
         recaptchaVerifier.clear();
       }
     }
-  }, [resolverState, hintState, toast, recaptchaResolved]);
+  }, [resolverState, hintState, toast, recaptchaResolved, mfaType]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -90,22 +102,40 @@ export function MfaChallengeForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
 
-    if (!verificationId || !resolverState) {
+    if (!resolverState) {
         toast({variant: "destructive", title: "MFA challenge not initialized."})
         setIsLoading(false);
         return;
     }
 
     try {
+      let multiFactorAssertion;
+      if (mfaType === 'phone') {
+        if (!verificationId) {
+          toast({variant: "destructive", title: "Phone verification not initialized."});
+          setIsLoading(false);
+          return;
+        }
         const cred = PhoneAuthProvider.credential(verificationId, values.code);
-        const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
-        await resolverState.resolveSignIn(multiFactorAssertion);
+        multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
+      } else if (mfaType === 'totp') {
+        multiFactorAssertion = TotpMultiFactorGenerator.assertionForSignIn(
+          hintState.uid,
+          values.code
+        );
+      } else {
+        toast({variant: "destructive", title: "Unsupported MFA type."});
+        setIsLoading(false);
+        return;
+      }
 
-        toast({
-            title: "Verification Successful",
-            description: "You have been securely logged in.",
-        });
-        router.push("/dashboard");
+      const userCredential = await resolverState.resolveSignIn(multiFactorAssertion);
+      
+      toast({
+          title: "Verification Successful",
+          description: "You have been securely logged in.",
+      });
+      router.push("/dashboard");
 
     } catch (error) {
         toast({
@@ -118,13 +148,15 @@ export function MfaChallengeForm() {
     }
   }
 
+  const description = mfaType === 'phone' 
+    ? `For your security, please enter the 6-digit code sent to your phone number ending in ${hintState?.phoneNumber?.slice(-4)}.`
+    : "For your security, please enter the 6-digit code from your authenticator app.";
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Verification Required</CardTitle>
-        <CardDescription>
-          For your security, please enter the 6-digit code sent to your phone number ending in {hintState?.phoneNumber.slice(-4)}.
-        </CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <div id="recaptcha-container"></div>
@@ -149,7 +181,7 @@ export function MfaChallengeForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading || !verificationId}>
+            <Button type="submit" className="w-full" disabled={isLoading || (mfaType === 'phone' && !verificationId)}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Verify
             </Button>

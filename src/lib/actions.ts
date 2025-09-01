@@ -32,6 +32,16 @@ export async function enrollPhoneMfa(uid: string, phoneNumber: string) {
   }
 }
 
+export async function generateTotpSecret() {
+    try {
+        const secret = await adminAuth.generateMultiFactorSession();
+        return { success: true, secret };
+    } catch (error: any) {
+        console.error("Error generating TOTP secret:", error);
+        return { success: false, error: error.message };
+    }
+}
+
 export async function checkMfaRequirement(
   isSuspicious: boolean
 ): Promise<{ shouldRequestMFA: boolean; reason: string }> {

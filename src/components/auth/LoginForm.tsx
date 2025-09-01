@@ -7,10 +7,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { signInWithEmailAndPassword, sendEmailVerification, signInWithPopup, GoogleAuthProvider, getMultiFactorResolver, PhoneAuthProvider, PhoneMultiFactorGenerator } from "firebase/auth";
+import { signInWithEmailAndPassword, sendEmailVerification, signInWithPopup, GoogleAuthProvider, getMultiFactorResolver, PhoneMultiFactorGenerator, TotpMultiFactorGenerator } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { checkMfaRequirement } from "@/lib/actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +67,6 @@ export function LoginForm() {
       router.push("/dashboard");
     } catch (error: any) {
        if (error.code === 'auth/popup-closed-by-user') {
-        // User closed the popup, do nothing
         console.log("Google Sign-In cancelled by user.");
        } else {
         toast({
@@ -102,6 +100,15 @@ export function LoginForm() {
     } catch (error: any) {
       if (error.code === 'auth/multi-factor-required') {
         const resolver = getMultiFactorResolver(auth, error);
+        
+        // Prioritize TOTP if available
+        const totpHint = resolver.hints.find(hint => hint.factorId === TotpMultiFactorGenerator.FACTOR_ID);
+        if (totpHint) {
+          router.push(`/mfa-challenge?resolver=${encodeURIComponent(JSON.stringify(resolver))}&hint=${encodeURIComponent(JSON.stringify(totpHint))}`);
+          return;
+        }
+
+        // Fallback to Phone MFA
         const phoneHint = resolver.hints.find(hint => hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID);
         if (phoneHint) {
             router.push(`/mfa-challenge?resolver=${encodeURIComponent(JSON.stringify(resolver))}&hint=${encodeURIComponent(JSON.stringify(phoneHint))}`);
