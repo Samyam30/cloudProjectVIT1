@@ -61,6 +61,8 @@ export function SignupForm() {
         errorMessage = "This email address is already in use.";
       } else if (errorCode === 'auth/weak-password') {
         errorMessage = "The password is too weak."
+      } else if (errorCode === 'auth/operation-not-allowed') {
+        errorMessage = "Email/Password sign-up is not enabled. Please enable it in the Firebase Console.";
       }
       toast({
         variant: "destructive",
