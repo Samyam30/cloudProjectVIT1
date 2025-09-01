@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { signInWithEmailAndPassword, sendEmailVerification, signInWithPopup, GoogleAuthProvider, getMultiFactorResolver, PhoneAuthProvider, PhoneMultiFactorGenerator } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { checkMfaRequirement } from "@/lib/actions";
@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Terminal } from "lucide-react";
+import { Loader2, Terminal, Chrome } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
@@ -36,6 +37,7 @@ export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -57,6 +59,25 @@ export function LoginForm() {
       }
   }
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      router.push("/dashboard");
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Google Sign-In Failed",
+        description: "Could not sign in with Google. Please try again.",
+      });
+      console.error(error);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }
+
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setNeedsVerification(false);
@@ -66,28 +87,31 @@ export function LoginForm() {
 
       if (!user.emailVerified) {
         setNeedsVerification(true);
-        await auth.signOut(); // Keep user logged out until verified
+        await auth.signOut();
         setIsLoading(false);
         return;
       }
-
-      // Intelligent MFA Step-Up
-      const { shouldRequestMFA, reason } = await checkMfaRequirement(values.isSuspicious);
-
-      toast({
-          title: "AI Security Check",
-          description: reason,
-      });
-
-      if (shouldRequestMFA) {
-        router.push("/mfa-challenge");
-      } else {
-        router.push("/dashboard");
-      }
+      
+      router.push("/dashboard");
 
     } catch (error: any) {
+      if (error.code === 'auth/multi-factor-required') {
+        const resolver = getMultiFactorResolver(auth, error);
+        const phoneHint = resolver.hints.find(hint => hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID);
+        if (phoneHint) {
+            router.push(`/mfa-challenge?resolver=${encodeURIComponent(JSON.stringify(resolver))}&hint=${encodeURIComponent(JSON.stringify(phoneHint))}`);
+        } else {
+             toast({
+                variant: "destructive",
+                title: "MFA Required",
+                description: "This account requires MFA, but no supported second factor is available.",
+            });
+        }
+        return;
+      }
+
       const errorCode = error.code;
-      let errorMessage = "Invalid email or password.";
+      let errorMessage = "An unknown error occurred.";
       if (errorCode === "auth/user-not-found" || errorCode === "auth/wrong-password" || errorCode === "auth/invalid-credential") {
         errorMessage = "Invalid email or password. Please try again.";
       }
@@ -96,6 +120,7 @@ export function LoginForm() {
         title: "Login Failed",
         description: errorMessage,
       });
+    } finally {
       setIsLoading(false);
     }
   }
@@ -147,31 +172,20 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="isSuspicious"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Simulate Suspicious Login
-                    </FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Log In
             </Button>
           </form>
         </Form>
+        <div className="relative my-6">
+          <Separator />
+          <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-card px-2 text-sm text-muted-foreground">OR</span>
+        </div>
+        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isLoading}>
+            {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Chrome className="mr-2 h-4 w-4" />}
+            Sign in with Google
+        </Button>
       </CardContent>
       <CardFooter className="flex flex-col items-center gap-2">
         <p className="text-sm text-muted-foreground">

@@ -3,6 +3,31 @@
 import { headers } from "next/headers";
 import { intelligentlyStepUpMFA } from "@/ai/flows/intelligent-mfa-step-up";
 import type { UserContext } from "@/ai/flows/intelligent-mfa-step-up";
+import { authAdmin } from "./firebase-admin";
+import { revalidatePath } from "next/cache";
+
+
+export async function enrollPhoneMfa(uid: string, phoneNumber: string) {
+  try {
+    await authAdmin.updateUser(uid, {
+      multiFactor: {
+        enrolledFactors: [
+          ...((await authAdmin.getUser(uid)).multiFactor?.enrolledFactors || []),
+          {
+            factorId: "phone",
+            phoneNumber,
+            displayName: `Phone (${phoneNumber.slice(-4)})`,
+          },
+        ],
+      },
+    });
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error enrolling phone MFA:", error);
+    return { success: false, error: error.message };
+  }
+}
 
 export async function checkMfaRequirement(
   isSuspicious: boolean
@@ -10,9 +35,6 @@ export async function checkMfaRequirement(
   const headerList = headers();
   const ipAddress = headerList.get("x-forwarded-for") || "not_found";
 
-  // In a real app, you would:
-  // 1. Look up geolocation from IP using a service.
-  // 2. Query your database (e.g., Firestore) for the user's login history.
   const userContext: UserContext = {
     ipAddress,
     geolocation: "San Francisco, USA (simulated)",
@@ -25,7 +47,6 @@ export async function checkMfaRequirement(
     return result;
   } catch (error) {
     console.error("Error in intelligent MFA step-up flow:", error);
-    // Fail safe: if AI check fails, require MFA for suspicious attempts.
     return {
       shouldRequestMFA: isSuspicious,
       reason: isSuspicious ? "Suspicious flag was set and AI check failed." : "AI check failed, proceeding without MFA.",
