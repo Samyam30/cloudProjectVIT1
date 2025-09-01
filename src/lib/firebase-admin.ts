@@ -1,11 +1,7 @@
 import * as admin from 'firebase-admin';
 
 // This prevents initializing the app more than once.
-const getFirebaseAdmin = () => {
-  if (admin.apps.length > 0) {
-    return admin.app();
-  }
-
+if (!admin.apps.length) {
   try {
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
@@ -17,7 +13,7 @@ const getFirebaseAdmin = () => {
         throw new Error('Firebase Admin SDK credentials are not set in .env.local');
     }
 
-    return admin.initializeApp({
+    admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
   } catch (error) {
@@ -25,9 +21,7 @@ const getFirebaseAdmin = () => {
     // Re-throw the error to make it visible in the server logs
     throw error;
   }
-};
+}
 
-const adminApp = getFirebaseAdmin();
-
-export const adminAuth = adminApp.auth();
-export const adminDb = adminApp.firestore();
+export const adminAuth = admin.auth();
+export const adminDb = admin.firestore();
