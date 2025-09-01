@@ -2,13 +2,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  "projectId": "fortress-auth-limmc",
-  "appId": "1:927412196214:web:82e4c38a22758704c06057",
-  "storageBucket": "fortress-auth-limmc.appspot.com",
-  "apiKey": process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  "authDomain": "fortress-auth-limmc.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "927412196214"
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
