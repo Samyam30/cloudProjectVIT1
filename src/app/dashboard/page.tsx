@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/context/auth-context";
@@ -22,7 +23,7 @@ export default function DashboardPage() {
     if (!loading && !user) {
       router.push("/login");
     } else if (user) {
-      setEnrolledFactors(user.multiFactor.enrolledFactors);
+      setEnrolledFactors(user.multiFactor?.enrolledFactors || []);
     }
   }, [user, loading, router]);
 
@@ -41,10 +42,20 @@ export default function DashboardPage() {
     // Refresh user to get latest MFA info when dialog closes
     if (!open) {
       user.reload().then(() => {
-        setEnrolledFactors(user.multiFactor.enrolledFactors);
+        setEnrolledFactors(user.multiFactor?.enrolledFactors || []);
       });
     }
     setIsTotpMfaDialogOpen(open);
+  }
+  
+  const handlePhoneDialogChange = (open: boolean) => {
+    // Refresh user to get latest MFA info when dialog closes
+    if (!open) {
+      user.reload().then(() => {
+        setEnrolledFactors(user.multiFactor?.enrolledFactors || []);
+      });
+    }
+    setIsPhoneMfaDialogOpen(open);
   }
 
   return (
@@ -113,7 +124,7 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
-      <PhoneMfaDialog open={isPhoneMfaDialogOpen} onOpenChange={setIsPhoneMfaDialogOpen} />
+      <PhoneMfaDialog open={isPhoneMfaDialogOpen} onOpenChange={handlePhoneDialogChange} />
       <TotpMfaDialog open={isTotpMfaDialogOpen} onOpenChange={handleTotpDialogChange} />
     </>
   );
