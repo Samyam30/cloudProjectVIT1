@@ -1,25 +1,31 @@
-import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
-import { getAuth, type Auth } from 'firebase-admin/auth';
-import { getFirestore, type Firestore } from 'firebase-admin/firestore';
-
+import { initializeApp, getApps, cert, type App } from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
+// Firebase Admin SDK service account credentials
 const serviceAccount = {
   projectId: process.env.FIREBASE_PROJECT_ID,
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+  privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
 };
 
 let app: App;
 
 if (!getApps().length) {
   try {
-    if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
-      throw new Error('Firebase Admin SDK credentials are not set in the environment.');
+    if (
+      !serviceAccount.projectId ||
+      !serviceAccount.clientEmail ||
+      !serviceAccount.privateKey
+    ) {
+      throw new Error(
+        "Firebase Admin SDK credentials are not set in the environment."
+      );
     }
     app = initializeApp({
       credential: cert(serviceAccount),
     });
   } catch (error) {
-    console.error('Firebase admin initialization error', error);
+    console.error("Firebase admin initialization error", error);
     throw error;
   }
 } else {

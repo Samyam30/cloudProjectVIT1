@@ -1,12 +1,16 @@
 "use client";
-
+// Phone Multi-Factor Authentication Dialog
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
-import { RecaptchaVerifier, PhoneAuthProvider, multiFactor } from "firebase/auth";
+import {
+  RecaptchaVerifier,
+  PhoneAuthProvider,
+  multiFactor,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { enrollPhoneMfa } from "@/lib/actions";
 
@@ -31,7 +35,12 @@ import {
 import { Loader2 } from "lucide-react";
 
 const phoneSchema = z.object({
-  phoneNumber: z.string().regex(/^\+[1-9]\d{1,14}$/, "Please enter a valid E.164 phone number (e.g., +12223334444)."),
+  phoneNumber: z
+    .string()
+    .regex(
+      /^\+[1-9]\d{1,14}$/,
+      "Please enter a valid E.164 phone number (e.g., +12223334444)."
+    ),
 });
 
 const codeSchema = z.object({
@@ -66,10 +75,14 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
     if (!user) return;
 
     try {
-      const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-enroll', {
-        'size': 'invisible',
-        'callback': (response: any) => {},
-      });
+      const recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container-enroll",
+        {
+          size: "invisible",
+          callback: (response: any) => {},
+        }
+      );
 
       const session = await multiFactor(user).getSession();
       const phoneInfoOptions = {
@@ -78,8 +91,11 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
       };
 
       const phoneAuthProvider = new PhoneAuthProvider(auth);
-      const verificationId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier);
-      
+      const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+        phoneInfoOptions,
+        recaptchaVerifier
+      );
+
       setVerificationId(verificationId);
       setStep("code");
     } catch (error: any) {
@@ -99,19 +115,22 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
     if (!verificationId || !user) return;
 
     try {
-        const cred = PhoneAuthProvider.credential(verificationId, values.code);
-        const multiFactorAssertion = {factorId: "phone", ...cred};
-        await multiFactor(user).enroll(multiFactorAssertion, `Phone (${phoneForm.getValues("phoneNumber").slice(-4)})`);
-        
-        // Also update the user on the backend
-        await enrollPhoneMfa(user.uid, phoneForm.getValues("phoneNumber"));
+      const cred = PhoneAuthProvider.credential(verificationId, values.code);
+      const multiFactorAssertion = { factorId: "phone", ...cred };
+      await multiFactor(user).enroll(
+        multiFactorAssertion,
+        `Phone (${phoneForm.getValues("phoneNumber").slice(-4)})`
+      );
 
-        toast({
-            title: "Success",
-            description: "Phone number has been added as a second factor.",
-        });
-        onOpenChange(false);
-    } catch (error: any) {        
+      // Also update the user on the backend
+      await enrollPhoneMfa(user.uid, phoneForm.getValues("phoneNumber"));
+
+      toast({
+        title: "Success",
+        description: "Phone number has been added as a second factor.",
+      });
+      onOpenChange(false);
+    } catch (error: any) {
       console.error(error);
       toast({
         variant: "destructive",
@@ -124,16 +143,22 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
   };
 
   const reset = () => {
-    setStep('phone');
+    setStep("phone");
     phoneForm.reset();
     codeForm.reset();
     setVerificationId(null);
     setResolver(null);
     setIsLoading(false);
-  }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) reset(); onOpenChange(isOpen);}}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) reset();
+        onOpenChange(isOpen);
+      }}
+    >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Enable Phone Authentication</DialogTitle>
@@ -148,7 +173,10 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
 
         {step === "phone" ? (
           <Form {...phoneForm}>
-            <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)} className="space-y-4 py-4">
+            <form
+              onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)}
+              className="space-y-4 py-4"
+            >
               <FormField
                 control={phoneForm.control}
                 name="phoneNumber"
@@ -164,7 +192,9 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
               />
               <DialogFooter>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Send Code
                 </Button>
               </DialogFooter>
@@ -172,7 +202,10 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
           </Form>
         ) : (
           <Form {...codeForm}>
-            <form onSubmit={codeForm.handleSubmit(handleCodeSubmit)} className="space-y-4 py-4">
+            <form
+              onSubmit={codeForm.handleSubmit(handleCodeSubmit)}
+              className="space-y-4 py-4"
+            >
               <FormField
                 control={codeForm.control}
                 name="code"
@@ -187,9 +220,17 @@ export function PhoneMfaDialog({ open, onOpenChange }: PhoneMfaDialogProps) {
                 )}
               />
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setStep('phone')} disabled={isLoading}>Back</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setStep("phone")}
+                  disabled={isLoading}
+                >
+                  Back
+                </Button>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Verify & Enable
                 </Button>
               </DialogFooter>

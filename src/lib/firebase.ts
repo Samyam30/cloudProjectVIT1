@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-
+// Firebase configuration
 const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,

@@ -1,12 +1,15 @@
 "use client";
-
+// Signup form for user registration
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,12 +23,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters." }),
 });
 
 export function SignupForm() {
@@ -44,7 +56,11 @@ export function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
       await sendEmailVerification(userCredential.user);
 
       toast({
@@ -59,10 +75,11 @@ export function SignupForm() {
       let errorMessage = "An unknown error occurred.";
       if (errorCode === "auth/email-already-in-use") {
         errorMessage = "This email address is already in use.";
-      } else if (errorCode === 'auth/weak-password') {
-        errorMessage = "The password is too weak."
-      } else if (errorCode === 'auth/operation-not-allowed') {
-        errorMessage = "Email/Password sign-up is not enabled. Please enable it in the Firebase Console.";
+      } else if (errorCode === "auth/weak-password") {
+        errorMessage = "The password is too weak.";
+      } else if (errorCode === "auth/operation-not-allowed") {
+        errorMessage =
+          "Email/Password sign-up is not enabled. Please enable it in the Firebase Console.";
       }
       toast({
         variant: "destructive",
@@ -77,8 +94,12 @@ export function SignupForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-2xl font-headline">Create your Account</CardTitle>
-        <CardDescription>Enter your email and password to get started.</CardDescription>
+        <CardTitle className="text-2xl font-headline">
+          Create your Account
+        </CardTitle>
+        <CardDescription>
+          Enter your email and password to get started.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -119,7 +140,10 @@ export function SignupForm() {
       <CardFooter className="flex flex-col items-center gap-2">
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-primary hover:underline">
+          <Link
+            href="/login"
+            className="font-semibold text-primary hover:underline"
+          >
             Log In
           </Link>
         </p>

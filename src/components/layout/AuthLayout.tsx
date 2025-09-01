@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
-
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+//authlayout
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br from-background via-purple-50 to-indigo-100 p-4">
       <div className="absolute top-8 left-8">

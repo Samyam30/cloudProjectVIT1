@@ -1,42 +1,45 @@
-// use server'
-
-/**
- * @fileOverview Implements a flow to intelligently determine when to step up authentication with MFA.
- *
- * The flow analyzes user IP address, geolocation, and past login behavior to assess risk and
- * conditionally prompt for MFA. It exports the function `intelligentlyStepUpMFA` to initiate
- * the process, along with its input and output types.
- */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+// analyzes ip, geolocation for potential threats using gemini
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const MFARequirementSchema = z.object({
-  shouldRequestMFA: z.boolean().describe('Whether MFA should be required based on risk assessment.'),
-  reason: z.string().describe('The reason for requesting or not requesting MFA.'),
+  shouldRequestMFA: z
+    .boolean()
+    .describe("Whether MFA should be required based on risk assessment."),
+  reason: z
+    .string()
+    .describe("The reason for requesting or not requesting MFA."),
 });
 
 export type MFARequirement = z.infer<typeof MFARequirementSchema>;
 
 const UserContextSchema = z.object({
-  ipAddress: z.string().describe('The IP address of the user.'),
-  geolocation: z.string().describe('The geolocation of the user (e.g., city, country).'),
+  ipAddress: z.string().describe("The IP address of the user."),
+  geolocation: z
+    .string()
+    .describe("The geolocation of the user (e.g., city, country)."),
   loginHistory: z
     .string()
-    .describe('A summary of the user login history, including timestamps and locations.'),
-  isSuspicious: z.boolean().describe('A flag to signal if the login attempt is deemed suspicious.'),
+    .describe(
+      "A summary of the user login history, including timestamps and locations."
+    ),
+  isSuspicious: z
+    .boolean()
+    .describe("A flag to signal if the login attempt is deemed suspicious."),
 });
 
 export type UserContext = z.infer<typeof UserContextSchema>;
 
-export async function intelligentlyStepUpMFA(input: UserContext): Promise<MFARequirement> {
+export async function intelligentlyStepUpMFA(
+  input: UserContext
+): Promise<MFARequirement> {
   return intelligentMFAStepUpFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'intelligentMFAPrompt',
-  input: {schema: UserContextSchema},
-  output: {schema: MFARequirementSchema},
+  name: "intelligentMFAPrompt",
+  input: { schema: UserContextSchema },
+  output: { schema: MFARequirementSchema },
   prompt: `You are an AI assistant that analyzes user login context and determines if multi-factor authentication (MFA) should be required.
 
   Consider the following factors to make your determination:
@@ -57,13 +60,12 @@ const prompt = ai.definePrompt({
 
 const intelligentMFAStepUpFlow = ai.defineFlow(
   {
-    name: 'intelligentMFAStepUpFlow',
+    name: "intelligentMFAStepUpFlow",
     inputSchema: UserContextSchema,
     outputSchema: MFARequirementSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     return output!;
   }
 );
-

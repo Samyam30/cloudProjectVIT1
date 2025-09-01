@@ -1,3 +1,4 @@
+//mfa
 import { MfaChallengeForm } from "@/components/auth/MfaChallengeForm";
 import AuthLayout from "@/components/layout/AuthLayout";
 import { Suspense } from "react";

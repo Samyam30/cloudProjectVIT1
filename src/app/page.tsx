@@ -1,9 +1,10 @@
+//main
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, KeyRound, Smartphone, Mail } from "lucide-react";
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -16,7 +17,9 @@ export default function Home() {
               Secure Your Digital Fortress
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-foreground/80 md:text-xl">
-              Fortress Auth provides robust, intelligent multi-factor authentication powered by Firebase and advanced AI, ensuring your application remains secure against unauthorized access.
+              Fortress Auth provides robust, intelligent multi-factor
+              authentication powered by Firebase and advanced AI, ensuring your
+              application remains secure against unauthorized access.
             </p>
             <div className="mt-10 flex justify-center gap-4">
               <Button asChild size="lg">
@@ -33,9 +36,12 @@ export default function Home() {
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
             <div className="text-center">
-              <h2 className="font-headline text-4xl font-bold text-primary">Features You Can Trust</h2>
+              <h2 className="font-headline text-4xl font-bold text-primary">
+                Features You Can Trust
+              </h2>
               <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground/70">
-                A comprehensive suite of security features to protect your users.
+                A comprehensive suite of security features to protect your
+                users.
               </p>
             </div>
             <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -61,9 +67,14 @@ export default function Home() {
         <section className="py-20 bg-secondary/50">
           <div className="container mx-auto grid grid-cols-1 items-center gap-12 px-4 md:grid-cols-2">
             <div>
-              <h2 className="font-headline text-4xl font-bold text-primary">Intelligent MFA Step-Up</h2>
+              <h2 className="font-headline text-4xl font-bold text-primary">
+                Intelligent MFA Step-Up
+              </h2>
               <p className="mt-4 text-lg text-foreground/80">
-                Our GenAI-powered system analyzes login attempts for risk. By evaluating IP address, geolocation, and past behavior, Fortress Auth intelligently decides when to prompt for a second factor, enhancing security without frustrating users.
+                Our GenAI-powered system analyzes login attempts for risk. By
+                evaluating IP address, geolocation, and past behavior, Fortress
+                Auth intelligently decides when to prompt for a second factor,
+                enhancing security without frustrating users.
               </p>
               <ul className="mt-6 space-y-4">
                 <li className="flex items-start gap-3">
@@ -72,18 +83,22 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                  <span>Reduce friction for legitimate users in familiar contexts.</span>
+                  <span>
+                    Reduce friction for legitimate users in familiar contexts.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
-                  <span>Immediately challenge suspicious login attempts with MFA.</span>
+                  <span>
+                    Immediately challenge suspicious login attempts with MFA.
+                  </span>
                 </li>
               </ul>
             </div>
             <div>
               <Card className="overflow-hidden shadow-2xl">
                 <CardContent className="p-0">
-                  <Image 
+                  <Image
                     src="https://picsum.photos/600/400"
                     width={600}
                     height={400}
@@ -99,7 +114,10 @@ export default function Home() {
 
         <footer className="border-t bg-background py-8">
           <div className="container mx-auto px-4 text-center text-foreground/60">
-            <p>&copy; {new Date().getFullYear()} Fortress Auth. All rights reserved.</p>
+            <p>
+              &copy; {new Date().getFullYear()} Fortress Auth. All rights
+              reserved.
+            </p>
           </div>
         </footer>
       </main>
@@ -107,7 +125,15 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
   return (
     <Card className="text-center transition-transform hover:-translate-y-2">
       <CardHeader>

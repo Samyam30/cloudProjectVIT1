@@ -1,5 +1,5 @@
 "use client";
-
+//header
 import Link from "next/link";
 import { ShieldCheck, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,11 @@ export default function Header() {
     await signOut(auth);
     router.push("/");
   };
-  
+
   const getInitials = (email: string | null | undefined) => {
     if (!email) return "??";
     return email.substring(0, 2).toUpperCase();
   };
-
 
   return (
     <header className="absolute top-0 left-0 right-0 z-10 bg-transparent">
@@ -43,9 +42,15 @@ export default function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-10 w-10 rounded-full"
+                >
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.photoURL ?? ''} alt={user.email ?? ''} />
+                    <AvatarImage
+                      src={user.photoURL ?? ""}
+                      alt={user.email ?? ""}
+                    />
                     <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -53,14 +58,16 @@ export default function Header() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">My Account</p>
+                    <p className="text-sm font-medium leading-none">
+                      My Account
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                <DropdownMenuItem onClick={() => router.push("/dashboard")}>
                   Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled>Settings</DropdownMenuItem>

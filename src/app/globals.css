@@ -1,3 +1,4 @@
+/* css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,7 +26,7 @@
     --ring: 283 100% 41%;
     --radius: 0.5rem;
   }
- 
+
   .dark {
     --background: 275 100% 10%;
     --foreground: 208 100% 97%;

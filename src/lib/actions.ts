@@ -1,17 +1,16 @@
 "use server";
-
+//actions
 import { headers } from "next/headers";
 import { intelligentlyStepUpMFA } from "@/ai/flows/intelligent-mfa-step-up";
 import type { UserContext } from "@/ai/flows/intelligent-mfa-step-up";
 import { adminAuth } from "./firebase-admin";
 import { revalidatePath } from "next/cache";
 
-
 export async function enrollPhoneMfa(uid: string, phoneNumber: string) {
   try {
     const user = await adminAuth.getUser(uid);
     const existingFactors = user.multiFactor?.enrolledFactors || [];
-    
+
     await adminAuth.updateUser(uid, {
       multiFactor: {
         enrolledFactors: [
@@ -24,7 +23,7 @@ export async function enrollPhoneMfa(uid: string, phoneNumber: string) {
         ],
       },
     });
-    revalidatePath('/dashboard');
+    revalidatePath("/dashboard");
     return { success: true };
   } catch (error: any) {
     console.error("Error enrolling phone MFA:", error);
@@ -33,13 +32,13 @@ export async function enrollPhoneMfa(uid: string, phoneNumber: string) {
 }
 
 export async function generateTotpSecret() {
-    try {
-        const secret = await adminAuth.generateMultiFactorSession();
-        return { success: true, secret };
-    } catch (error: any) {
-        console.error("Error generating TOTP secret:", error);
-        return { success: false, error: error.message };
-    }
+  try {
+    const secret = await adminAuth.generateMultiFactorSession();
+    return { success: true, secret };
+  } catch (error: any) {
+    console.error("Error generating TOTP secret:", error);
+    return { success: false, error: error.message };
+  }
 }
 
 export async function checkMfaRequirement(
@@ -62,7 +61,9 @@ export async function checkMfaRequirement(
     console.error("Error in intelligent MFA step-up flow:", error);
     return {
       shouldRequestMFA: isSuspicious,
-      reason: isSuspicious ? "Suspicious flag was set and AI check failed." : "AI check failed, proceeding without MFA.",
+      reason: isSuspicious
+        ? "Suspicious flag was set and AI check failed."
+        : "AI check failed, proceeding without MFA.",
     };
   }
 }
