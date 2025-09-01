@@ -3,6 +3,7 @@ import 'dotenv/config';
 
 if (!admin.apps.length) {
   try {
+    // Note: The `process.env` variables are sourced from .env.local
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
